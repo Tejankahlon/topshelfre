@@ -48,6 +48,11 @@ def delete_book(book_id: int):
 	books.pop(index)
 	return {"message": "Book deleted"}
 
+@app.search("/search")
+def search_books(q: str):
+	results = [book for book in books if q.lower() in book.title.lower() or q.lower() in book.author.lower()]
+	return results if results else {"message": "No books found matching the search"}
+
 client = TestClient(app)
 
 def test_create_book():
