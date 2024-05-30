@@ -1,5 +1,5 @@
 # Python (FastAPI)
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.testclient import TestClient
 
@@ -16,23 +16,37 @@ books = []
 
 @app.get("/books")
 def get_books():
-	pass
+	return books
 
 @app.get("/books/{book_id}")
 def get_book(book_id: int):
-	pass
+	book = next((bk for bk in books if bk.id == book_id), None)
+	if book is None:
+		raise HTTPException(status_code=404, detail="Book not found")
+	return book 
 
-@app.post("/books")
+@app.post("/books") 
 def create_book(book: Book):
-	pass
+	if any(bk.id == book.id for bk in books):
+		raise HTTPException(status_code=400, detail="Book already exists")
+	books.append(book)
+	return book
 
 @app.put("/books/{book_id}")
 def update_book(book_id: int, book: Book):
-	pass
+	index = next((i for i, bk in enumerate(books) if bk.id == book_id), None)
+	if index is None:
+		raise HTTPException(status_code=404, detail="Book not found")
+	books[index] = book
+	return book
 
 @app.delete("/books/{book_id}")
 def delete_book(book_id: int):
-	pass
+	index = next((i for i, bk in enumerate(books) if bk.id == book_id), None)
+	if index is None:
+		raise HTTPException(status_code=404, detail="Book not found")
+	books.pop(index)
+	return {"message": "Book deleted"}
 
 client = TestClient(app)
 
